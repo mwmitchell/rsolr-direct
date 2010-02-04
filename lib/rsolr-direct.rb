@@ -1,4 +1,4 @@
-require 'java'
+#require 'java'
 require 'rubygems'
 require 'rsolr'
 
@@ -9,20 +9,29 @@ module RSolr::Direct
   
   module Connectable
     
-    def direct_connect opts={}, &blk
-      client = RSolr::Client.new RSolr::Direct::Connection.new(opts)
-      if block_given?
-        yield client
-        client.connection.close
-        nil
+    def connect *args, &blk
+      first = args.first
+      use_dc = first.is_a?(Hash) and first[:solr_home]
+      use_dc = use_dc || (first.class.to_s == "Java::OrgApacheSolrCore::SolrCore")
+      use_dc = use_dc || (first.class.to_s == "Java::OrgApacheSolrServlet::DirectSolrConnection")
+      if use_dc
+        client = RSolr::Client.new RSolr::Direct::Connection.new(first)
+        if block_given?
+          yield client
+          client.connection.close
+          nil
+        else
+          client
+        end
       else
-        client
+        # use the original connect method
+        super *args, &blk
       end
     end
     
   end
   
-  RSolr.extend Connectable
+  RSolr.extend RSolr::Direct::Connectable
   
   class Connection
     
@@ -50,6 +59,7 @@ module RSolr::Direct
       end
       
       if defined?(Java::OrgApacheSolrCore::SolrCore) and opts.is_a?(Java::OrgApacheSolrCore::SolrCore)
+        puts "OKOKOKOK a SolrCore!"
         @connection = org.apache.solr.servlet.DirectSolrConnection.new(opts)
       elsif defined?(Java::OrgApacheSolrServlet::DirectSolrConnection) and opts.is_a?(Java::OrgApacheSolrServlet::DirectSolrConnection)
         @connection = opts

@@ -2,15 +2,33 @@
 rsolr-direct enhances the RSolr core library by adding the ability to connect to Solr directly, using JRuby, sans http. Hotdog!
 
 = How
-Execute via JRuby
+Check out the specs to see the various connection methods. Overview below...
+
+==Using :solr_home
   require 'rsolr-direct'
   Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
     require jar
   end
-  connection = RSolr.direct_connect '/absolute/path/to/solr/home'
+  connection = RSolr.connect :solr_home => '/absolute/path/to/solr/home'
+
+==Using a Java::OrgApacheSolrCore::SolrCore instance
+  require 'rsolr-direct'
+  Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
+    require jar
+  end
+  core = org.apache.solr.core.SolrCore.new( nil, solr_data_path, solr_config, index_schema, dcore)
+  connection = RSolr.connect core
+
+==Using a Java::OrgApacheSolrServlet::DirectSolrConnection
+  require 'rsolr-direct'
+  Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
+    require jar
+  end
+  dc = org.apache.solr.servlet.DirectSolrConnection.new(solr_home_path, solr_data_path, nil)
+  connection = RSolr.connect dc
 
 = Why
-Using a direct connection to Solr can speed up indexing. How much faster? I have no idea yet. Numbers to come.
+Using a direct connection to Solr can speed up indexing. How much faster? I have no idea yet. Numbers to come?
 
 == Note on Patches/Pull Requests
  

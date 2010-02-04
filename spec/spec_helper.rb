@@ -34,6 +34,10 @@ Spec::Runner.configure do |config|
     end
   end
   
+  def new_direct_solr_connection solr_home_path, solr_data_path
+    org.apache.solr.servlet.DirectSolrConnection.new(solr_home_path, solr_data_path, nil)
+  end
+  
   # creates a new SolrCore
   def new_solr_core solr_home_path, solr_data_path
 
