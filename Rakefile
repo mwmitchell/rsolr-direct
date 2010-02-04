@@ -9,8 +9,9 @@ begin
     gem.description = %Q{Provides a non-http connection to your solr/lucene index}
     gem.email = "goodieboy@gmail.com"
     gem.homepage = "http://github.com/mwmitchell/rsolr-direct"
-    gem.authors = ["mwmitchell"]
+    gem.authors = ["Matt Mitchell"]
     gem.add_development_dependency "rspec", ">= 1.2.9"
+    gem.add_dependency "rsolr", ">= 0.12.0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   # Jeweler::GemcutterTasks.new

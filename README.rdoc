@@ -1,10 +1,16 @@
 = rsolr-direct
-rsolr-direct enhances the RSolr core library by adding the ability to connect to Solr directly, sans http. Hotdog!
+rsolr-direct enhances the RSolr core library by adding the ability to connect to Solr directly, using JRuby, sans http. Hotdog!
 
 = How
-require 'rsolr'
-require 'rsolr-direct'
-connection = RSolr.direct_connect
+Execute via JRuby
+  require 'rsolr-direct'
+  Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
+    require jar
+  end
+  connection = RSolr.direct_connect '/absolute/path/to/solr/home'
+
+= Why
+Using a direct connection to Solr can speed up indexing. How much faster? I have no idea yet. Numbers to come.
 
 == Note on Patches/Pull Requests
  

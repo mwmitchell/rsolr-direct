@@ -1,15 +1,16 @@
 require 'java'
+require 'rubygems'
 require 'rsolr'
 
 #
 # Connection for JRuby + DirectSolrConnection
 #
-module RSolr
+module RSolr::Direct
   
-  module Direct
+  module Connectable
     
     def direct_connect opts={}, &blk
-      client = RSolr::Client.new Connection::Direct.new(opts)
+      client = RSolr::Client.new RSolr::Direct::Connection.new(opts)
       if block_given?
         yield client
         client.connection.close
@@ -18,22 +19,32 @@ module RSolr
         client
       end
     end
-
+    
   end
   
-  extend Direct
+  RSolr.extend Connectable
   
-  class Connection::Direct
+  class Connection
     
     include RSolr::Connection::Requestable
     
     attr_accessor :opts
+    
+    class MissingRequiredJavaLibs < RuntimeError
+    end
     
     # opts can be an instance of org.apache.solr.servlet.DirectSolrConnection
     # if opts is NOT an instance of org.apache.solr.servlet.DirectSolrConnection
     # then...
     # required: opts[:home_dir] is absolute path to solr home (the directory with "data", "config" etc.)
     def initialize(opts, &block)
+      
+      begin
+        org.apache.solr.servlet.DirectSolrConnection
+      rescue NameError
+        raise MissingRequiredJavaLibs
+      end
+      
       if defined?(Java::OrgApacheSolrCore::SolrCore) and opts.is_a?(Java::OrgApacheSolrCore::SolrCore)
         @connection = org.apache.solr.servlet.DirectSolrConnection.new(opts)
       elsif defined?(Java::OrgApacheSolrServlet::DirectSolrConnection) and opts.is_a?(Java::OrgApacheSolrServlet::DirectSolrConnection)

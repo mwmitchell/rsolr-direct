@@ -1,5 +1,28 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-describe "RSolrDirect" do
+describe RSolr::Direct do
+  
+  context 'RSolr mixin' do
+    it 'should attach a direct_connect method to RSolr' do
+      RSolr.should respond_to(:direct_connect)
+    end
+  end
+  
+  context 'initialization' do
+    
+    it 'should raise a MissingRequiredJavaLibs if the required java libs are not available' do
+      lambda{
+        RSolr.direct_connect
+      }.should raise_error(RSolr::Direct::Connection::MissingRequiredJavaLibs)
+    end
+    
+    it 'should not raise a MissingRequiredJavaLibs if the required java libs are available' do
+      load_required_java_libs
+      lambda{
+        RSolr.direct_connect
+      }.should_not raise_error(RSolr::Direct::Connection::MissingRequiredJavaLibs)
+    end
+    
+  end
   
 end
