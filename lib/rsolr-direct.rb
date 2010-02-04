@@ -33,11 +33,15 @@ module RSolr::Direct
     class MissingRequiredJavaLibs < RuntimeError
     end
     
+    class InvalidSolrHome < RuntimeError
+    end
+    
     # opts can be an instance of org.apache.solr.servlet.DirectSolrConnection
     # if opts is NOT an instance of org.apache.solr.servlet.DirectSolrConnection
     # then...
-    # required: opts[:home_dir] is absolute path to solr home (the directory with "data", "config" etc.)
-    def initialize(opts, &block)
+    # required: opts[:solr_home] is absolute path to solr home (the directory with "data", "config" etc.)
+    def initialize opts
+      opts ||= {}
       
       begin
         org.apache.solr.servlet.DirectSolrConnection
@@ -50,7 +54,9 @@ module RSolr::Direct
       elsif defined?(Java::OrgApacheSolrServlet::DirectSolrConnection) and opts.is_a?(Java::OrgApacheSolrServlet::DirectSolrConnection)
         @connection = opts
       else
-        opts[:data_dir] ||= File.join(opts[:home_dir].to_s, 'data')
+        opts[:solr_home] ||= ''
+        raise InvalidSolrHome unless File.exists?(opts[:solr_home])
+        opts[:data_dir] ||= File.join(opts[:solr_home], 'data')
         @opts = opts
       end
     end
