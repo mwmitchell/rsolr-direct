@@ -14,26 +14,26 @@ describe RSolr::Direct do
     
     it 'should attempt to use a direct connect if :solr_home is set but raise a MissingRequiredJavaLibs' do
       lambda{
-        RSolr.connect(:solr_home=>'')
+        RSolr.connect(:direct, nil)
       }.should raise_error(RSolr::Direct::Connection::MissingRequiredJavaLibs)
     end
     
     it 'should attempt to use a direct connect if :solr_home is set but raise a InvalidSolrHome' do
       load_required_java_libs
       lambda{
-        RSolr.connect(:solr_home=>'')
+        RSolr.connect(:direct, :solr_home=>'')
       }.should raise_error(RSolr::Direct::Connection::InvalidSolrHome)
     end
     
     it 'should create direct connection succesfully' do
       load_required_java_libs
-      RSolr.connect(:solr_home=>solr_home_dir).connection.should be_a(RSolr::Direct::Connection)
+      RSolr.connect(:direct, :solr_home=>solr_home_dir).connection.should be_a(RSolr::Direct::Connection)
     end
     
     it 'should accept a Java::OrgApacheSolrCore::SolrCore' do
       load_required_java_libs
       core = new_solr_core solr_home_dir, solr_data_dir
-      rsolr = RSolr.connect(core)
+      rsolr = RSolr.connect(:direct, core)
       rsolr.should be_a(RSolr::Client)
       rsolr.connection.should be_a(RSolr::Direct::Connection)
       core.close
@@ -42,7 +42,7 @@ describe RSolr::Direct do
     it 'should accept a Java::OrgApacheSolrServlet::DirectSolrConnection' do
       load_required_java_libs
       dc = new_direct_solr_connection solr_home_dir, solr_data_dir
-      rsolr = RSolr.connect(dc)
+      rsolr = RSolr.connect(:direct, dc)
       rsolr.should be_a(RSolr::Client)
       rsolr.connection.should be_a(RSolr::Direct::Connection)
       dc.close

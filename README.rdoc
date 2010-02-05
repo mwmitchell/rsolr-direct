@@ -9,7 +9,7 @@ Check out the specs to see the various connection methods. Overview below...
   Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
     require jar
   end
-  connection = RSolr.connect :solr_home => '/absolute/path/to/solr/home'
+  connection = RSolr.connect :direct, :solr_home => '/absolute/path/to/solr/home'
 
 ==Using a Java::OrgApacheSolrCore::SolrCore instance
   require 'rsolr-direct'
@@ -17,7 +17,7 @@ Check out the specs to see the various connection methods. Overview below...
     require jar
   end
   core = org.apache.solr.core.SolrCore.new( nil, solr_data_path, solr_config, index_schema, dcore)
-  connection = RSolr.connect core
+  connection = RSolr.connect :direct, core
 
 ==Using a Java::OrgApacheSolrServlet::DirectSolrConnection
   require 'rsolr-direct'
@@ -25,7 +25,7 @@ Check out the specs to see the various connection methods. Overview below...
     require jar
   end
   dc = org.apache.solr.servlet.DirectSolrConnection.new(solr_home_path, solr_data_path, nil)
-  connection = RSolr.connect dc
+  connection = RSolr.connect :direct, dc
 
 = Why
 Using a direct connection to Solr can speed up indexing. How much faster? I have no idea yet. Numbers to come?

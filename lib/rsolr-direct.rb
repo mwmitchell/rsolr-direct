@@ -1,4 +1,4 @@
-#require 'java'
+require 'java'
 require 'rubygems'
 require 'rsolr'
 
@@ -9,13 +9,12 @@ module RSolr::Direct
   
   module Connectable
     
+    # RSolr.connect :direct, :solr_home => 'apache-solr/example/solr'
+    # RSolr.connect :direct, java_solr_core
+    # RSolr.connect :direct, java_direct_solr_connection
     def connect *args, &blk
-      first = args.first
-      use_dc = first.is_a?(Hash) and first[:solr_home]
-      use_dc = use_dc || (first.class.to_s == "Java::OrgApacheSolrCore::SolrCore")
-      use_dc = use_dc || (first.class.to_s == "Java::OrgApacheSolrServlet::DirectSolrConnection")
-      if use_dc
-        client = RSolr::Client.new RSolr::Direct::Connection.new(first)
+      if args.first == :direct
+        client = RSolr::Client.new RSolr::Direct::Connection.new(*args[1..-1])
         if block_given?
           yield client
           client.connection.close
@@ -50,7 +49,6 @@ module RSolr::Direct
     # then...
     # required: opts[:solr_home] is absolute path to solr home (the directory with "data", "config" etc.)
     def initialize opts
-      opts ||= {}
       
       begin
         org.apache.solr.servlet.DirectSolrConnection
@@ -58,16 +56,14 @@ module RSolr::Direct
         raise MissingRequiredJavaLibs
       end
       
-      if defined?(Java::OrgApacheSolrCore::SolrCore) and opts.is_a?(Java::OrgApacheSolrCore::SolrCore)
-        puts "OKOKOKOK a SolrCore!"
-        @connection = org.apache.solr.servlet.DirectSolrConnection.new(opts)
-      elsif defined?(Java::OrgApacheSolrServlet::DirectSolrConnection) and opts.is_a?(Java::OrgApacheSolrServlet::DirectSolrConnection)
-        @connection = opts
-      else
-        opts[:solr_home] ||= ''
+      if opts.is_a?(Hash) and opts[:solr_home]
         raise InvalidSolrHome unless File.exists?(opts[:solr_home])
         opts[:data_dir] ||= File.join(opts[:solr_home], 'data')
         @opts = opts
+      elsif opts.class.to_s == "Java::OrgApacheSolrCore::SolrCore"
+        @connection = org.apache.solr.servlet.DirectSolrConnection.new(opts)
+      elsif opts.class.to_s == "Java::OrgApacheSolrServlet::DirectSolrConnection"
+        @connection = opts
       end
     end
     
