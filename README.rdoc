@@ -12,25 +12,16 @@ RSolr-Direct comes with the required Solr jars. If you'd like to use them, just 
 
 ==:solr_home
   require 'rsolr-direct'
-  Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
-    require jar
-  end
   connection = RSolr.connect :direct, :solr_home => '/absolute/path/to/solr/home'
-
+  
 ==Java::OrgApacheSolrCore::SolrCore
   require 'rsolr-direct'
-  Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
-    require jar
-  end
-  core = org.apache.solr.core.SolrCore.new( nil, solr_data_path, solr_config, index_schema, dcore)
+  core = org.apache.solr.core.SolrCore.new(nil, solr_data_path, solr_config, index_schema, dcore)
   connection = RSolr.connect :direct, core
 
 ==Java::OrgApacheSolrServlet::DirectSolrConnection
   require 'rsolr-direct'
-  Dir['/path/to/solr/distribution/lib/*.jar', '/path/to/solr/distribution/dist/*.jar'].each do |jar|
-    require jar
-  end
-  dc = org.apache.solr.servlet.DirectSolrConnection.new(solr_home_path, solr_data_path, nil)
+  dc = org.apache.solr.servlet.DirectSolrConnection.new(solr_home_path, solr_data_path, solr_log_path)
   connection = RSolr.connect :direct, dc
 
 = Why
