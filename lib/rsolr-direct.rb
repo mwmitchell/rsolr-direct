@@ -9,6 +9,21 @@ module RSolr::Direct
   
   module Connectable
     
+    # load the java libs that ship with rsolr-direct
+    # RSolr.load_java_libs
+    # rsolr = RSolr.connect :direct, :solr_home => ''
+    def load_java_libs
+      @java_libs_loaded ||= (
+        base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'solr'))
+        ['lib', 'dist'].each do |sub|
+          Dir[File.join(base_dir, sub, '*.jar')].each do |jar|
+            require jar
+          end
+        end
+        true
+      )
+    end
+    
     # RSolr.connect :direct, :solr_home => 'apache-solr/example/solr'
     # RSolr.connect :direct, java_solr_core
     # RSolr.connect :direct, java_direct_solr_connection
