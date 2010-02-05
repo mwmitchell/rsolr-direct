@@ -87,10 +87,12 @@ module RSolr::Direct
       @direct ||= org.apache.solr.servlet.DirectSolrConnection.new(opts[:solr_home], @opts[:data_dir], nil)
     end
     
+    # rsolr.connection.open
+    alias_method :open, :direct
+    
     def close
       if @direct
         @direct.close
-        puts "CLOSING -> #{@direct}"
         @direct = nil
       end
     end
