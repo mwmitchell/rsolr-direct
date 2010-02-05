@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Mitchell"]
-  s.date = %q{2010-02-04}
+  s.date = %q{2010-02-05}
   s.description = %q{Provides a non-http connection to your solr/lucene index}
   s.email = %q{goodieboy@gmail.com}
   s.extra_rdoc_files = [

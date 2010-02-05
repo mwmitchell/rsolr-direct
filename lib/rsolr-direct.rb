@@ -61,23 +61,22 @@ module RSolr::Direct
         opts[:data_dir] ||= File.join(opts[:solr_home], 'data')
         @opts = opts
       elsif opts.class.to_s == "Java::OrgApacheSolrCore::SolrCore"
-        @connection = org.apache.solr.servlet.DirectSolrConnection.new(opts)
+        @direct = org.apache.solr.servlet.DirectSolrConnection.new(opts)
       elsif opts.class.to_s == "Java::OrgApacheSolrServlet::DirectSolrConnection"
-        @connection = opts
+        @direct = opts
       end
     end
     
-    # sets the @connection instance variable if it has not yet been set
-    def connection
-      @connection ||= (
-        org.apache.solr.servlet.DirectSolrConnection.new(opts[:home_dir], @opts[:data_dir], nil)
-      )
+    # sets the @direct instance variable if it has not yet been set
+    def direct
+      @direct ||= org.apache.solr.servlet.DirectSolrConnection.new(opts[:solr_home], @opts[:data_dir], nil)
     end
     
     def close
-      if @connection
-        @connection.close
-        @connection=nil
+      if @direct
+        @direct.close
+        puts "CLOSING -> #{@direct}"
+        @direct = nil
       end
     end
     
@@ -88,7 +87,7 @@ module RSolr::Direct
       data = data.to_xml if data.respond_to?(:to_xml)
       url = build_url(path, params)
       begin
-        body = connection.request(url, data)
+        body = direct.request(url, data)
       rescue
         raise RSolr::RequestError.new($!.message)
       end

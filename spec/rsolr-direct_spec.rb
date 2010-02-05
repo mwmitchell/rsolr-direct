@@ -50,4 +50,58 @@ describe RSolr::Direct do
     
   end
   
+  module ConnectionHelpers
+    
+    def self.included base
+      base.let(:connections){
+        [
+          RSolr.connect(:direct, :solr_home=>solr_home_dir),
+          RSolr.connect(:direct, new_solr_core(solr_home_dir, solr_data_dir)),
+          RSolr.connect(:direct, new_direct_solr_connection(solr_home_dir, solr_data_dir))
+        ]
+      }
+    end
+    
+  end
+  
+  context 'connection closing' do
+    
+    include ConnectionHelpers
+    
+    it '(they) should have connection objects that respond to close, and set the internal "direct" attribute to nil' do
+      connections.each do |rsolr|
+        rsolr.connection.direct # <- connect
+        rsolr.connection.instance_variable_get("@direct").should_not be(nil)
+        rsolr.connection.close
+        rsolr.connection.instance_variable_get("@direct").should be(nil)
+      end
+    end
+    
+    it 'should automatically close when using the block style of connecting' do
+      rsolr = nil
+      RSolr.connect(:direct, :solr_home => solr_home_dir) do |client|
+        rsolr = client
+        client.connection.direct # <- connect
+        rsolr.connection.instance_variable_get("@direct").should_not be(nil)
+      end
+      rsolr.connection.instance_variable_get("@direct").should be(nil)
+    end
+    
+  end
+  
+  context 'querying' do
+    
+    include ConnectionHelpers
+    
+    it '(they) should return a solr response hash when calling select' do
+      connections.each do |rsolr|
+        response = rsolr.select(:q => '*:*')
+        response.should be_a(Hash)
+        response.keys.should include("response", "responseHeader")
+        rsolr.connection.close
+      end
+    end
+    
+  end
+  
 end
