@@ -49,7 +49,7 @@ module RSolr::Direct
   
   class Connection
     
-    include RSolr::Connection::Requestable
+    include RSolr::Connection::Utils
     
     attr_accessor :opts
     
