@@ -7,49 +7,43 @@ require 'rsolr'
 #
 module RSolr::Direct
   
-  module Connectable
-    
-    # load the java libs that ship with rsolr-direct
-    # RSolr.load_java_libs
-    # rsolr = RSolr.connect :direct, :solr_home => ''
-    def load_java_libs
-      @java_libs_loaded ||= (
-        base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'solr'))
-        ['lib', 'dist'].each do |sub|
-          Dir[File.join(base_dir, sub, '*.jar')].each do |jar|
-            require jar
-          end
+  # load the java libs that ship with rsolr-direct
+  # RSolr.load_java_libs
+  # rsolr = RSolr.connect :direct, :solr_home => ''
+  def self.load_java_libs
+    @java_libs_loaded ||= (
+      base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'solr'))
+      ['lib', 'dist'].each do |sub|
+        Dir[File.join(base_dir, sub, '*.jar')].each do |jar|
+          require jar
         end
-        true
-      )
-    end
-    
-    # RSolr.connect :direct, :solr_home => 'apache-solr/example/solr'
-    # RSolr.connect :direct, java_solr_core
-    # RSolr.connect :direct, java_direct_solr_connection
-    def connect *args, &blk
-      if args.first == :direct
-        client = RSolr::Client.new RSolr::Direct::Connection.new(*args[1..-1])
-        if block_given?
-          yield client
-          client.connection.close
-          nil
-        else
-          client
-        end
-      else
-        # use the original connect method
-        super *args, &blk
       end
-    end
-    
+      true
+    )
   end
   
-  RSolr.extend RSolr::Direct::Connectable
+  RSolr.class_eval do
+    # RSolr.direct_connect :solr_home => 'apache-solr/example/solr'
+    # RSolr.direct_connect java_solr_core
+    # RSolr.direct_connect java_direct_solr_connection
+    def self.direct_connect *args, &blk
+      client = RSolr::Client.new RSolr::Direct::Connection.new(*args)
+      if block_given?
+        yield client
+        client.connection.close
+        nil
+      else
+        client
+      end
+    end
+    class << self
+      alias :direct_connection :direct_connect
+    end
+  end
   
   class Connection
     
-    include RSolr::Connection::Utils
+    include RSolr::Connectable
     
     attr_accessor :opts
     
@@ -64,13 +58,11 @@ module RSolr::Direct
     # then...
     # required: opts[:solr_home] is absolute path to solr home (the directory with "data", "config" etc.)
     def initialize opts
-      
       begin
         org.apache.solr.servlet.DirectSolrConnection
       rescue NameError
         raise MissingRequiredJavaLibs
       end
-      
       if opts.is_a?(Hash) and opts[:solr_home]
         raise InvalidSolrHome unless File.exists?(opts[:solr_home])
         opts[:data_dir] ||= File.join(opts[:solr_home], 'data')
@@ -80,6 +72,8 @@ module RSolr::Direct
       elsif opts.class.to_s == "Java::OrgApacheSolrServlet::DirectSolrConnection"
         @direct = opts
       end
+      opts[:auto_connect] = true unless opts.key?(:auto_connect)
+      self.direct if opts[:auto_connect]
     end
     
     # sets the @direct instance variable if it has not yet been set
@@ -98,25 +92,23 @@ module RSolr::Direct
     end
     
     # send a request to the connection
-    # request '/select', :q=>'something'
-    # request '/update', :wt=>:xml, '</commit>'
-    def request(path, params={}, data=nil, opts={})
-      data = data.to_xml if data.respond_to?(:to_xml)
-      url = build_url(path, params)
+    def execute request_context
+      #data = request_context[:data]
+      #data = data.to_xml if data.respond_to?(:to_xml)
+      #puts request_context.inspect
+      url = [request_context[:path], request_context[:query]].join("?")
+      url = "/" + url unless url[0].chr=="/"
       begin
-        body = direct.request(url, data)
+        body = direct.request(url, request_context[:data])
       rescue
-        raise RSolr::RequestError.new($!.message)
+        $!.extend RSolr::Error::SolrContext
+        $!.request = request_context
+        raise $!
       end
       {
-        :status_code => 200,
-        :url=>url,
-        :body=>body,
-        :path=>path,
-        :params=>params,
-        :data=>data,
-        :headers => {},
-        :message => ''
+        :status => 200,
+        :body => body,
+        :headers => {}
       }
     end
     
