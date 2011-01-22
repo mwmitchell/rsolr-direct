@@ -5,10 +5,12 @@ rsolr-direct enhances the RSolr core library by adding the ability to connect to
 Check out the specs to see the various connection methods.
 
 == Solr Java libs/jars
-RSolr-Direct comes with the required Solr jars. If you'd like to use them, just call #load_java_libs:
+If you'd like to use them, just call #load_java_libs:
   require 'rsolr-direct'
   RSolr::Direct.load_java_libs "path/to/solr/distribution"
   # create connection etc..
+
+The path/to/solr/distribution should be a directory containing "lib" and "dist" -- a typical solr download will do.
 
 ==:solr_home
   require 'rsolr-direct'
@@ -27,11 +29,13 @@ RSolr-Direct comes with the required Solr jars. If you'd like to use them, just 
   connection = RSolr.direct_connect dc
 
 = Why
-Using a direct connection to Solr can speed up indexing. How much faster? A page on the Solr Wiki says ~ 50% faster.
+Using a direct connection to Solr can speed up indexing. How much faster? This document says ~ 50% => http://wiki.apache.org/solr/SolrPerformanceFactors#Embedded_vs_HTTP_Post
 
 = Testing
 Clone it, cd into the project dir and run:
   jruby -S rake spec
+
+* note, rspec 1.3 is required.
 
 == Note on Patches/Pull Requests
  
