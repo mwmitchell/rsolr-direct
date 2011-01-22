@@ -5,7 +5,7 @@ rsolr-direct enhances the RSolr core library by adding the ability to connect to
 Check out the specs to see the various connection methods.
 
 == Solr Java libs/jars
-If you'd like to use them, just call #load_java_libs:
+You'll need to make sure you have the proper jars loaded. Use RSolr::Direct #load_java_libs for this if you'd like:
   require 'rsolr-direct'
   RSolr::Direct.load_java_libs "path/to/solr/distribution"
   # create connection etc..
