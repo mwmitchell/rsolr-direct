@@ -10,9 +10,9 @@ module RSolr::Direct
   # load the java libs that ship with rsolr-direct
   # RSolr.load_java_libs
   # rsolr = RSolr.connect :direct, :solr_home => ''
-  def self.load_java_libs
+  def self.load_java_libs apache_solr_dir
     @java_libs_loaded ||= (
-      base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'solr'))
+      base_dir = File.expand_path(apache_solr_dir)
       ['lib', 'dist'].each do |sub|
         Dir[File.join(base_dir, sub, '*.jar')].each do |jar|
           require jar
@@ -27,7 +27,7 @@ module RSolr::Direct
     # RSolr.direct_connect java_solr_core
     # RSolr.direct_connect java_direct_solr_connection
     def self.direct_connect *args, &blk
-      client = RSolr::Client.new RSolr::Direct::Connection.new(*args)
+      client = RSolr::Client.new(RSolr::Direct::Connection.new(*args), :url => false)
       if block_given?
         yield client
         client.connection.close
@@ -36,18 +36,16 @@ module RSolr::Direct
         client
       end
     end
-    class << self
-      alias :direct_connection :direct_connect
-    end
   end
   
   class Connection
     
-    include RSolr::Connectable
-    
     attr_accessor :opts
     
     class MissingRequiredJavaLibs < RuntimeError
+      def to_s
+        "#{self.class} => Try loading with RSolr::Direct.load_java_libs(\"/path/to/solr-distribution\")"
+      end
     end
     
     class InvalidSolrHome < RuntimeError
@@ -72,8 +70,7 @@ module RSolr::Direct
       elsif opts.class.to_s == "Java::OrgApacheSolrServlet::DirectSolrConnection"
         @direct = opts
       end
-      opts[:auto_connect] = true unless opts.key?(:auto_connect)
-      self.direct if opts[:auto_connect]
+      self.direct
     end
     
     # sets the @direct instance variable if it has not yet been set
@@ -91,13 +88,12 @@ module RSolr::Direct
       end
     end
     
-    # send a request to the connection
-    def execute request_context
+    # send a request to the connection (this is called by rsolr)
+    def execute client, request_context
       #data = request_context[:data]
       #data = data.to_xml if data.respond_to?(:to_xml)
-      #puts request_context.inspect
       url = [request_context[:path], request_context[:query]].join("?")
-      url = "/" + url unless url[0].chr=="/"
+      url = "/" + url unless url[0].chr == "/"
       begin
         body = direct.request(url, request_context[:data])
       rescue
